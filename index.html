@@ -41,6 +41,10 @@
                             <div class="custom-option"><input type="checkbox" id="riskDV" name="at_risk_causes[]" value="dv"><label for="riskDV">Domestic Violence</label></div>
                             <div class="custom-option"><input type="checkbox" id="riskRepairs" name="at_risk_causes[]" value="repairs_maintenance"><label for="riskRepairs">Landlord won't complete repairs</label></div>
                         </div>
+                        <div id="termination-date-container" class="collapsible collapsed">
+                            <label for="terminationDate">What is the termination date?</label>
+                            <input type="date" id="terminationDate" name="termination_date">
+                        </div>
                     </div>
                 </fieldset>
 
@@ -117,12 +121,43 @@
         <div class="debt-item item-box">
             <button type="button" class="remove-item remove-debt">Remove Debt</button>
             <div>
-                <label>Amount</label>
+                <label>Total Amount</label>
                 <input type="number" class="debt-amount" placeholder="e.g., 2000" required>
             </div>
             <div>
                 <label>Debt Type</label>
-                <input type="text" class="debt-type" placeholder="e.g., Credit Card" required>
+                <select class="debt-type" required>
+                    <option value="">-- Please Select --</option>
+                    <option value="credit_card">Credit Card</option>
+                    <option value="personal_loan">Personal Loan</option>
+                    <option value="child_support">Child Support</option>
+                    <option value="ato">ATO</option>
+                    <option value="utility_arrears">Utility Arrears</option>
+                    <option value="rental_arrears">Rental Arrears</option>
+                    <option value="bnpl">Buy Now, Pay Later</option>
+                    <option value="fines">Fines</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="other-debt-type-container collapsible collapsed">
+                <label>Please specify other debt type</label>
+                <input type="text" class="other-debt-type">
+            </div>
+            <div class="payment-details">
+                <h4>Payment Arrangement</h4>
+                <div>
+                    <label>Payment Amount</label>
+                    <input type="number" class="debt-payment-amount" placeholder="e.g., 50">
+                </div>
+                <div>
+                    <label>Payment Frequency</label>
+                    <select class="debt-payment-frequency">
+                        <option value="">-- Not in a plan --</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="fortnightly">Fortnightly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
             </div>
         </div>
     </template>

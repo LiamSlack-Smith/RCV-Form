@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RCV Financial Summary</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <div id="formContainer">
+            <div class="logo-container">
+                <h1>Financial Summary</h1>
+            </div>
+
+            <fieldset>
+                <legend>Income Breakdown</legend>
+                <table class="summary-table" id="income-summary-table">
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                            <th>Member</th>
+                            <th>Yearly Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Income rows will be injected here -->
+                    </tbody>
+                </table>
+            </fieldset>
+
+            <fieldset>
+                <legend>Totals</legend>
+                <table class="summary-table" id="financial-totals-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Weekly</th>
+                            <th>Monthly</th>
+                            <th>Yearly</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Total Gross Income</td>
+                            <td id="total-income-weekly"></td>
+                            <td id="total-income-monthly"></td>
+                            <td id="total-income-yearly"></td>
+                        </tr>
+                        <tr>
+                            <td>Total Debt Payments</td>
+                            <td id="total-debt-weekly"></td>
+                            <td id="total-debt-monthly"></td>
+                            <td id="total-debt-yearly"></td>
+                        </tr>
+                        <tr class="net-income-row">
+                            <td>Total Net Income</td>
+                            <td id="net-income-weekly"></td>
+                            <td id="net-income-monthly"></td>
+                            <td id="net-income-yearly"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </fieldset>
+
+            <a href="index.html" class="button-link">Back to Form</a>
+        </div>
+    </div>
+    <script src="summary.js"></script>
+</body>
+</html>

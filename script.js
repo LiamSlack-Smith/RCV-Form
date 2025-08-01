@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const housingStatusRadios = document.querySelectorAll('input[name="housing_status"]');
     const homelessDetails = document.getElementById('homeless-details');
     const atRiskDetails = document.getElementById('at-risk-details');
+    const riskTerminationNoticeCheckbox = document.getElementById('riskTerminationNotice');
+    const terminationDateContainer = document.getElementById('termination-date-container');
 
     const householdSection = document.getElementById('household-section');
     const addHouseholdMemberBtn = document.getElementById('add-household-member');
@@ -49,8 +51,14 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('change', (e) => {
         if (e.target.classList.contains('income-type')) {
             const otherContainer = e.target.closest('.income-source-item').querySelector('.other-income-type-container');
-            const showOther = e.target.value === 'other';
-            toggleCollapsible(otherContainer, showOther);
+            toggleCollapsible(otherContainer, e.target.value === 'other');
+        }
+        if (e.target.classList.contains('debt-type')) {
+            const otherContainer = e.target.closest('.debt-item').querySelector('.other-debt-type-container');
+            toggleCollapsible(otherContainer, e.target.value === 'other');
+        }
+        if (e.target.id === 'riskTerminationNotice') {
+            toggleCollapsible(terminationDateContainer, e.target.checked);
         }
     });
 
@@ -72,10 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const newMember = householdContainer.lastElementChild;
         const addIncomeBtn = newMember.querySelector('.add-income-source');
-        const addDebtBtn = newMember.querySelector('.add-debt');
 
         addIncomeSource(addIncomeBtn);
-        addDebt(addDebtBtn);
     }
 
     function addIncomeSource(button) {
@@ -112,17 +118,53 @@ document.addEventListener('DOMContentLoaded', () => {
             debts.forEach((debt, debtIndex) => {
                 debt.querySelector('.debt-amount').name = `household_members[${memberIndex}][debts][${debtIndex}][amount]`;
                 debt.querySelector('.debt-type').name = `household_members[${memberIndex}][debts][${debtIndex}][type]`;
+                debt.querySelector('.other-debt-type').name = `household_members[${memberIndex}][debts][${debtIndex}][other_type]`;
+                debt.querySelector('.debt-payment-amount').name = `household_members[${memberIndex}][debts][${debtIndex}][payment_amount]`;
+                debt.querySelector('.debt-payment-frequency').name = `household_members[${memberIndex}][debts][${debtIndex}][payment_frequency]`;
             });
         });
     }
 
     function handleFormSubmit(e) {
-        e.preventDefault();
-        updateNames();
+        e.preventDefault(); // Prevent submission immediately
+
+        // Reset previous validation states
+        form.querySelectorAll('.invalid-glow').forEach(el => el.classList.remove('invalid-glow'));
+
+        // Check form validity
+        if (!form.checkValidity()) {
+            const invalidElements = form.querySelectorAll(':invalid');
+            const fieldsetsToGlow = new Set();
+
+            invalidElements.forEach(el => {
+                const fieldset = el.closest('fieldset');
+                if (fieldset) {
+                    fieldsetsToGlow.add(fieldset);
+                }
+            });
+
+            fieldsetsToGlow.forEach(fieldset => {
+                fieldset.classList.add('invalid-glow');
+            });
+
+            // Optional: Scroll to the first invalid element
+            if (invalidElements.length > 0) {
+                invalidElements[0].focus();
+                invalidElements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            return; // Stop the function here
+        }
+
+        // If the form is valid, proceed with serialization and redirection
+        updateNames(); // Ensure all names are set before serialization
         const formData = new FormData(form);
         const formObject = {};
 
+        // Process top-level fields and multi-select checkboxes
         formData.forEach((value, key) => {
+            if (key.startsWith('household_members')) return; // Skip household members, they are handled below
+
             if (key.endsWith('[]')) {
                 const cleanKey = key.slice(0, -2);
                 if (!formObject[cleanKey]) {
@@ -130,19 +172,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 formObject[cleanKey].push(value);
             } else {
-                if (!key.startsWith('household_members')) {
-                     formObject[key] = value;
-                }
+                formObject[key] = value;
             }
         });
-        
+
+        // Manually build the household_members array from the DOM
         formObject.household_members = [];
         const members = householdContainer.querySelectorAll('.household-member');
         members.forEach(member => {
             const memberData = { incomes: [], debts: [] };
-            
-            const nameInput = member.querySelector('.member-name');
-            memberData.name = nameInput ? nameInput.value : '';
+            memberData.name = member.querySelector('.member-name')?.value || '';
 
             member.querySelectorAll('.income-source-item').forEach(income => {
                 const incomeData = {};
@@ -159,18 +198,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 const debtData = {};
                 debtData.amount = debt.querySelector('.debt-amount').value;
                 debtData.type = debt.querySelector('.debt-type').value;
+                if (debtData.type === 'other') {
+                    debtData.other_type = debt.querySelector('.other-debt-type').value;
+                }
+                debtData.payment_amount = debt.querySelector('.debt-payment-amount').value;
+                debtData.payment_frequency = debt.querySelector('.debt-payment-frequency').value;
                 memberData.debts.push(debtData);
             });
             formObject.household_members.push(memberData);
         });
 
-        console.log('--- Form Submission Data ---');
-        console.log(JSON.stringify(formObject, null, 2));
-        alert('Form data has been logged to the developer console (F12).');
+        // Store data in sessionStorage and redirect
+        try {
+            sessionStorage.setItem('rcvFormData', JSON.stringify(formObject));
+            window.location.href = 'summary.html';
+        } catch (error) {
+            console.error('Error saving data to sessionStorage:', error);
+            alert('Could not save form data. Please check browser permissions.');
+        }
     }
 
     // --- Initial Setup ---
-    toggleCollapsible(householdSection, true); // Make the section visible
-    addHouseholdMember(); // Add the first member automatically
-    addHouseholdMemberBtn.style.display = 'block'; // Ensure the 'add' button is visible
+    toggleCollapsible(householdSection, true);
+    addHouseholdMember();
+    addHouseholdMemberBtn.style.display = 'block';
 });
