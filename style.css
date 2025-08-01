@@ -221,7 +221,7 @@ button#add-household-member:hover,
     background-color: #444;
 }
 
-/* --- NEW SUMMARY PAGE STYLES --- */
+/* --- SUMMARY PAGE STYLES --- */
 table.summary-table {
     width: 100%;
     border-collapse: collapse;
@@ -253,20 +253,35 @@ table.summary-table td:first-child {
     background-color: rgba(254, 57, 31, 0.1);
 }
 
-/* --- NEW VALIDATION GLOW STYLES --- */
-@keyframes pulse-red {
-    0% {
-        box-shadow: 0 0 0 0 rgba(254, 57, 31, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(254, 57, 31, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(254, 57, 31, 0);
-    }
+/* --- VALIDATION GLOW STYLES --- */
+@keyframes outward-pulse-fade {
+    /* Pulse 1 */
+    0% { box-shadow: 0 0 0 0px rgba(254, 57, 31, 0.7); }
+    20% { box-shadow: 0 0 0 10px rgba(254, 57, 31, 0); }
+
+    /* Invisible Reset & Pause */
+    20.01%, 29.99% { box-shadow: 0 0 0 0px rgba(254, 57, 31, 0); }
+
+    /* Pulse 2 */
+    30% { box-shadow: 0 0 0 0px rgba(254, 57, 31, 0.5); }
+    50% { box-shadow: 0 0 0 10px rgba(254, 57, 31, 0); }
+
+    /* Invisible Reset & Pause */
+    50.01%, 59.99% { box-shadow: 0 0 0 0px rgba(254, 57, 31, 0); }
+
+    /* Pulse 3 */
+    60% { box-shadow: 0 0 0 0px rgba(254, 57, 31, 0.3); }
+    80% { box-shadow: 0 0 0 10px rgba(254, 57, 31, 0); }
+
+    100% { box-shadow: 0 0 0 10px rgba(254, 57, 31, 0); }
 }
 
-.invalid-glow {
-    animation: pulse-red 1.5s infinite;
+.validation-glow {
     border: 1px solid #FE391F !important;
+    border-radius: 8px;
+    animation: outward-pulse-fade 7s;
+}
+
+input.validation-glow, select.validation-glow {
+    border-radius: 4px;
 }

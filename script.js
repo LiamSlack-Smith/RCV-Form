@@ -62,6 +62,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Listener to remove validation glow on user interaction
+    form.addEventListener('input', (e) => {
+        if (e.target.classList.contains('validation-glow')) {
+            e.target.classList.remove('validation-glow');
+        }
+    });
+    form.addEventListener('change', (e) => {
+        let target = e.target;
+        if (target.classList.contains('validation-glow')) {
+            target.classList.remove('validation-glow');
+        }
+        // Special case for radio buttons where the glow is on the parent
+        if (target.type === 'radio') {
+            const parentGrid = target.closest('.custom-options-grid');
+            if (parentGrid && parentGrid.classList.contains('validation-glow')) {
+                parentGrid.classList.remove('validation-glow');
+            }
+        }
+    });
+
     form.addEventListener('submit', handleFormSubmit);
 
     // --- Functions ---
@@ -126,95 +146,119 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleFormSubmit(e) {
-        e.preventDefault(); // Prevent submission immediately
+        e.preventDefault();
 
         // Reset previous validation states
-        form.querySelectorAll('.invalid-glow').forEach(el => el.classList.remove('invalid-glow'));
+        form.querySelectorAll('.validation-glow').forEach(el => el.classList.remove('validation-glow'));
 
-        // Check form validity
-        if (!form.checkValidity()) {
-            const invalidElements = form.querySelectorAll(':invalid');
-            const fieldsetsToGlow = new Set();
+        let isFormValid = true;
 
-            invalidElements.forEach(el => {
-                const fieldset = el.closest('fieldset');
-                if (fieldset) {
-                    fieldsetsToGlow.add(fieldset);
+        // Check each fieldset individually to apply the correct glow logic
+        form.querySelectorAll('fieldset').forEach(fieldset => {
+            const requiredElements = [...fieldset.querySelectorAll('[required]')];
+            if (requiredElements.length === 0) return;
+
+            const requiredUnits = new Set();
+            requiredElements.forEach(el => {
+                if (el.type === 'radio') {
+                    requiredUnits.add(el.name);
+                } else {
+                    requiredUnits.add(el);
                 }
             });
 
-            fieldsetsToGlow.forEach(fieldset => {
-                fieldset.classList.add('invalid-glow');
+            const invalidUnits = new Set();
+            requiredUnits.forEach(unit => {
+                if (typeof unit === 'string') { // Radio group name
+                    if (!form.querySelector(`input[name="${unit}"]:checked`)) {
+                        invalidUnits.add(unit);
+                    }
+                } else { // Standard element
+                    if (!unit.checkValidity()) {
+                        invalidUnits.add(unit);
+                    }
+                }
             });
 
-            // Optional: Scroll to the first invalid element
-            if (invalidElements.length > 0) {
-                invalidElements[0].focus();
-                invalidElements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-            
-            return; // Stop the function here
-        }
-
-        // If the form is valid, proceed with serialization and redirection
-        updateNames(); // Ensure all names are set before serialization
-        const formData = new FormData(form);
-        const formObject = {};
-
-        // Process top-level fields and multi-select checkboxes
-        formData.forEach((value, key) => {
-            if (key.startsWith('household_members')) return; // Skip household members, they are handled below
-
-            if (key.endsWith('[]')) {
-                const cleanKey = key.slice(0, -2);
-                if (!formObject[cleanKey]) {
-                    formObject[cleanKey] = [];
+            if (invalidUnits.size > 0) {
+                isFormValid = false;
+                if (invalidUnits.size === requiredUnits.size) {
+                    fieldset.classList.add('validation-glow');
+                } else {
+                    invalidUnits.forEach(unit => {
+                        let target;
+                        if (typeof unit === 'string') {
+                            target = form.querySelector(`input[name="${unit}"]`).closest('.custom-options-grid');
+                        } else {
+                            target = unit;
+                        }
+                        if (target) target.classList.add('validation-glow');
+                    });
                 }
-                formObject[cleanKey].push(value);
-            } else {
-                formObject[key] = value;
             }
         });
 
-        // Manually build the household_members array from the DOM
-        formObject.household_members = [];
-        const members = householdContainer.querySelectorAll('.household-member');
-        members.forEach(member => {
-            const memberData = { incomes: [], debts: [] };
-            memberData.name = member.querySelector('.member-name')?.value || '';
+        if (isFormValid) {
+            updateNames();
+            const formData = new FormData(form);
+            const formObject = {};
 
-            member.querySelectorAll('.income-source-item').forEach(income => {
-                const incomeData = {};
-                incomeData.amount = income.querySelector('.income-amount').value;
-                incomeData.frequency = income.querySelector('.income-frequency').value;
-                incomeData.type = income.querySelector('.income-type').value;
-                if (incomeData.type === 'other') {
-                    incomeData.other_type = income.querySelector('.other-income-type').value;
+            formData.forEach((value, key) => {
+                if (key.startsWith('household_members')) return;
+                if (key.endsWith('[]')) {
+                    const cleanKey = key.slice(0, -2);
+                    if (!formObject[cleanKey]) {
+                        formObject[cleanKey] = [];
+                    }
+                    formObject[cleanKey].push(value);
+                } else {
+                    formObject[key] = value;
                 }
-                memberData.incomes.push(incomeData);
             });
 
-            member.querySelectorAll('.debt-item').forEach(debt => {
-                const debtData = {};
-                debtData.amount = debt.querySelector('.debt-amount').value;
-                debtData.type = debt.querySelector('.debt-type').value;
-                if (debtData.type === 'other') {
-                    debtData.other_type = debt.querySelector('.other-debt-type').value;
-                }
-                debtData.payment_amount = debt.querySelector('.debt-payment-amount').value;
-                debtData.payment_frequency = debt.querySelector('.debt-payment-frequency').value;
-                memberData.debts.push(debtData);
-            });
-            formObject.household_members.push(memberData);
-        });
+            formObject.household_members = [];
+            const members = householdContainer.querySelectorAll('.household-member');
+            members.forEach(member => {
+                const memberData = { incomes: [], debts: [] };
+                memberData.name = member.querySelector('.member-name')?.value || '';
 
-        // Store data in sessionStorage and redirect
-        try {
-            sessionStorage.setItem('rcvFormData', JSON.stringify(formObject));
-            window.location.href = 'summary.html';
-        } catch (error) {
-            console.error('Error saving data to sessionStorage:', error);
-            alert('Could not save form data. Please check browser permissions.');
+                member.querySelectorAll('.income-source-item').forEach(income => {
+                    const incomeData = {};
+                    incomeData.amount = income.querySelector('.income-amount').value;
+                    incomeData.frequency = income.querySelector('.income-frequency').value;
+                    incomeData.type = income.querySelector('.income-type').value;
+                    if (incomeData.type === 'other') {
+                        incomeData.other_type = income.querySelector('.other-income-type').value;
+                    }
+                    memberData.incomes.push(incomeData);
+                });
+
+                member.querySelectorAll('.debt-item').forEach(debt => {
+                    const debtData = {};
+                    debtData.amount = debt.querySelector('.debt-amount').value;
+                    debtData.type = debt.querySelector('.debt-type').value;
+                    if (debtData.type === 'other') {
+                        debtData.other_type = debt.querySelector('.other-debt-type').value;
+                    }
+                    debtData.payment_amount = debt.querySelector('.debt-payment-amount').value;
+                    debtData.payment_frequency = debt.querySelector('.debt-payment-frequency').value;
+                    memberData.debts.push(debtData);
+                });
+                formObject.household_members.push(memberData);
+            });
+
+            try {
+                sessionStorage.setItem('rcvFormData', JSON.stringify(formObject));
+                window.location.href = 'summary.html';
+            } catch (error) {
+                console.error('Error saving data to sessionStorage:', error);
+                alert('Could not save form data. Please check browser permissions.');
+            }
+        } else {
+            const firstInvalid = form.querySelector('.validation-glow');
+            if (firstInvalid) {
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
     }
 
