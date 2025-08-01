@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RCV Screening Form</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <div id="formContainer">
+            <div class="logo-container">
+                <h1>RCV Screening Form</h1>
+            </div>
+
+            <form id="rcv-screening-form">
+                <!-- Section 1: Housing Situation -->
+                <fieldset>
+                    <legend>Current Housing Situation</legend>
+                    <label>What is your current housing situation?</label>
+                    <div class="custom-options-grid grid-normalize-height">
+                        <div class="custom-option"><input type="radio" id="housingStatusHomeless" name="housing_status" value="homeless" required><label for="housingStatusHomeless">Homeless</label></div>
+                        <div class="custom-option"><input type="radio" id="housingStatusAtRisk" name="housing_status" value="at_risk" required><label for="housingStatusAtRisk">At Risk of Homelessness</label></div>
+                    </div>
+
+                    <div id="homeless-details" class="collapsible collapsed">
+                        <label for="homelessDuration">How long have you been homeless for?</label>
+                        <input type="text" id="homelessDuration" name="homeless_duration">
+                        <label for="homelessLocation">Where are you located?</label>
+                        <input type="text" id="homelessLocation" name="homeless_location">
+                    </div>
+
+                    <div id="at-risk-details" class="collapsible collapsed">
+                        <label>What are the causes that put you at risk? (select all that apply)</label>
+                        <div class="custom-options-grid">
+                            <div class="custom-option"><input type="checkbox" id="riskRentStruggle" name="at_risk_causes[]" value="rent_struggle"><label for="riskRentStruggle">Struggling to keep up with rent</label></div>
+                            <div class="custom-option"><input type="checkbox" id="riskTerminationNotice" name="at_risk_causes[]" value="termination_notice"><label for="riskTerminationNotice">Received a notice of termination</label></div>
+                            <div class="custom-option"><input type="checkbox" id="riskPropertySale" name="at_risk_causes[]" value="property_sale"><label for="riskPropertySale">Current rental property on sale</label></div>
+                            <div class="custom-option"><input type="checkbox" id="riskRelationshipBreakdown" name="at_risk_causes[]" value="relationship_breakdown"><label for="riskRelationshipBreakdown">Relationship breakdown</label></div>
+                            <div class="custom-option"><input type="checkbox" id="riskMarriageBreakdown" name="at_risk_causes[]" value="marriage_breakdown"><label for="riskMarriageBreakdown">Marriage breakdown</label></div>
+                            <div class="custom-option"><input type="checkbox" id="riskDV" name="at_risk_causes[]" value="dv"><label for="riskDV">Domestic Violence</label></div>
+                            <div class="custom-option"><input type="checkbox" id="riskRepairs" name="at_risk_causes[]" value="repairs_maintenance"><label for="riskRepairs">Landlord won't complete repairs</label></div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Section 2: Household Members, Income, and Debt -->
+                <div id="household-section" class="collapsible">
+                    <fieldset>
+                        <legend>Household, Income & Debt</legend>
+                        <div id="household-members-container"></div>
+                        <button type="button" id="add-household-member">+ Add Household Member</button>
+                    </fieldset>
+                </div>
+
+                <button type="submit">Submit Screening Form</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TEMPLATES -->
+    <template id="household-member-template">
+        <fieldset class="household-member">
+            <legend>Household Member</legend>
+            <button type="button" class="remove-item remove-member">Remove Member</button>
+            <label>Member's Name</label>
+            <input type="text" class="member-name" required>
+            
+            <div class="income-sources-container">
+                <h4>Income Sources</h4>
+                <div class="income-sources-list"></div>
+                <button type="button" class="add-income-source">+ Add Income Source</button>
+            </div>
+
+            <div class="debts-container">
+                <h4>Debts</h4>
+                <div class="debts-list"></div>
+                <button type="button" class="add-debt">+ Add Debt</button>
+            </div>
+        </fieldset>
+    </template>
+
+    <template id="income-source-template">
+        <div class="income-source-item item-box">
+            <button type="button" class="remove-item remove-income">Remove Income</button>
+            <div>
+                <label>Amount</label>
+                <input type="number" class="income-amount" placeholder="e.g., 500" required>
+            </div>
+            <div>
+                <label>Frequency</label>
+                <select class="income-frequency" required>
+                    <option value="weekly">Weekly</option>
+                    <option value="fortnightly">Fortnightly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+            </div>
+            <div>
+                <label>Income Type</label>
+                <select class="income-type" required>
+                    <option value="">-- Please Select --</option>
+                    <option value="wages">Wages</option>
+                    <option value="dva">DVA</option>
+                    <option value="centrelink">Centrelink</option>
+                    <option value="comm_super">Comm Super</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="other-income-type-container collapsible collapsed">
+                <label>Please specify other income type</label>
+                <input type="text" class="other-income-type">
+            </div>
+        </div>
+    </template>
+
+    <template id="debt-template">
+        <div class="debt-item item-box">
+            <button type="button" class="remove-item remove-debt">Remove Debt</button>
+            <div>
+                <label>Amount</label>
+                <input type="number" class="debt-amount" placeholder="e.g., 2000" required>
+            </div>
+            <div>
+                <label>Debt Type</label>
+                <input type="text" class="debt-type" placeholder="e.g., Credit Card" required>
+            </div>
+        </div>
+    </template>
+
+    <script src="script.js"></script>
+</body>
+</html>
